@@ -1,0 +1,35 @@
+useDynLib(ShapeClust, .registration = TRUE)
+importFrom(Rcpp, sourceCpp)
+importFrom(stats, rnorm, runif, rexp, setNames, wilcox.test, median, sd, prcomp)
+importFrom(utils, str)
+
+# Geometry
+export(helmert_submatrix)
+export(landmarks_to_preshape)
+export(rho_matrix)
+export(dF_matrix)
+
+# Clustering algorithms
+export(shape_pam)
+export(shape_rankkmed)
+
+# Bagging ensemble
+export(bagclust1)
+export(align_labels)
+
+# Validation
+export(rand_index)
+export(fmi_index)
+export(relative_gain)
+export(riemannian_variances)
+export(wilcoxon_paired_gain)
+
+# Simulators
+export(sim_complex_bingham)
+export(sim_landmark_gaussian)
+
+# K selection
+export(select_K)
+
+# S3
+S3method(print, bagclust1)

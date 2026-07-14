@@ -1,0 +1,28 @@
+citHeader("To cite ShapeClust in publications, please cite the paper and the software:")
+
+bibentry(
+  bibtype  = "Article",
+  title    = "Bagged Medoid-Based Clustering on Kendall's Two-Dimensional Shape Space",
+  author   = c(person("Raydonal", "Ospina"),
+               person("Inácio Robson Alves do", "Nascimento"),
+               person("Getúlio José Amorim do", "Amaral")),
+  year     = "2026",
+  journal  = "Preprint",
+  textVersion = paste("Ospina, R., Nascimento, I. R. A. and Amaral, G. J. A. (2026).",
+                      "Bagged Medoid-Based Clustering on Kendall's Two-Dimensional Shape Space. Preprint.")
+)
+
+bibentry(
+  bibtype  = "Manual",
+  title    = "ShapeClust: Medoid-Based Clustering and Bagging Ensembles on Kendall's Two-Dimensional Shape Space",
+  author   = c(person("Raydonal", "Ospina"),
+               person("Inácio Robson Alves do", "Nascimento"),
+               person("Getúlio José Amorim do", "Amaral")),
+  year     = "2026",
+  note     = "R package version 0.2.0",
+  url      = "https://github.com/raydonal/ShapeClust",
+  textVersion = paste("Ospina, R., Nascimento, I. R. A. and Amaral, G. J. A. (2026).",
+                      "ShapeClust: Medoid-Based Clustering and Bagging Ensembles on Kendall's",
+                      "Two-Dimensional Shape Space. R package version 0.2.0.",
+                      "https://github.com/raydonal/ShapeClust")
+)

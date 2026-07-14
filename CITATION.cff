@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+title: "ShapeClust: Medoid-Based Clustering and Bagging Ensembles on Kendall's Two-Dimensional Shape Space"
+message: "If you use this software, please cite both the software and the paper."
+type: software
+version: 0.2.0
+license: GPL-3.0
+repository-code: "https://github.com/raydonal/ShapeClust"
+url: "https://raydonal.github.io/ShapeClust/"
+authors:
+  - family-names: Ospina
+    given-names: Raydonal
+    email: raydonal@de.ufpe.br
+    orcid: "https://orcid.org/0000-0002-9884-9090"
+    affiliation: "Departamento de Estatística, LInCa, Universidade Federal da Bahia; Departamento de Estatística, CASTLab, Universidade Federal de Pernambuco"
+  - family-names: Nascimento
+    given-names: Inácio Robson Alves do
+    affiliation: "Departamento de Estatística, CASTLab, Universidade Federal de Pernambuco"
+  - family-names: Amaral
+    given-names: Getúlio José Amorim do
+    affiliation: "Departamento de Estatística, CASTLab, Universidade Federal de Pernambuco"
+preferred-citation:
+  type: article
+  title: "Bagged Medoid-Based Clustering on Kendall's Two-Dimensional Shape Space"
+  year: 2026
+  authors:
+    - family-names: Ospina
+      given-names: Raydonal
+    - family-names: Nascimento
+      given-names: Inácio Robson Alves do
+    - family-names: Amaral
+      given-names: Getúlio José Amorim do
