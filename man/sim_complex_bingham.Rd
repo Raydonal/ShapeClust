@@ -13,7 +13,8 @@ sim_complex_bingham(n, lambda, seed = NULL)
 \eqn{(\lambda_1, \dots, \lambda_{k-1})}; note the last eigenvalue
 is fixed at 0 by convention.}
 
-\item{seed}{Optional integer seed.}
+\item{seed}{Optional integer seed; the caller's random-number stream
+is left as it was.}
 }
 \value{
 A complex matrix of size (k-1) x n whose columns are

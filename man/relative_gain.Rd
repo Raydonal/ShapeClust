@@ -18,3 +18,7 @@ Numeric percentage.
 Percentage increase of a validation measure from a standard to a
 bagged variant.
 }
+\examples{
+relative_gain(0.80, 0.88)  # +10 percent
+
+}

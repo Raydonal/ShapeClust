@@ -26,3 +26,9 @@ Uses the Hungarian algorithm via \code{clue::solve_LSAP} if available;
 otherwise falls back to exhaustive enumeration of \eqn{S_K} (feasible
 for K <= 8).
 }
+\examples{
+a <- c(2, 2, 3, 3, 1, 1)
+b <- c(1, 1, 2, 2, 3, 3)
+align_labels(a, b, K = 3)  # equals b
+
+}

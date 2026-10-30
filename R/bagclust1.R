@@ -1,8 +1,10 @@
 ## ---------------------------------------------------------------------------
 ##  BagClust1: bagged clustering ensemble (Dudoit & Fridlyand 2003) adapted
 ##  to shape data. Given a base clusterer, draw B bootstrap samples of the
-##  n observations, cluster each, align labels to a reference clustering
-##  by an optimal permutation, and take the majority vote.
+##  n observations and cluster each; every replicate then labels all n
+##  observations by their nearest bootstrap medoid. Labels are aligned to a
+##  reference clustering of the full sample by an optimal permutation, and
+##  the consensus is the majority vote.
 ##
 ##  Label alignment uses the Hungarian algorithm (O(K^3)) via
 ##  clue::solve_LSAP when clue is available, or an exhaustive search over
@@ -11,12 +13,19 @@
 
 #' BagClust1 for shape clustering
 #'
+#' Each bootstrap replicate fits the base clusterer to a resample and then
+#' assigns every one of the n original observations to its nearest
+#' bootstrap medoid, so all observations vote in every replicate
+#' (Dudoit and Fridlyand, 2003, BagClust1).
+#'
 #' @param Z Complex pre-shape matrix of size (k-1) x n.
 #' @param K Number of clusters.
 #' @param base Base clusterer. One of "pam" (default) or "rankkmed".
 #' @param B Number of bootstrap replicates (default 100).
 #' @param distance One of "rho" (default), "dF".
-#' @param seed Optional integer seed for reproducibility.
+#' @param seed Optional integer seed. The result is then reproducible and
+#'   identical with and without \code{parallel}; the caller's
+#'   random-number stream is left as it was.
 #' @param parallel Logical. If TRUE, use \code{parallel::mclapply}
 #'   (Unix/macOS) or \code{parallel::parLapply} (Windows).
 #' @param n_cores Number of cores to use if \code{parallel = TRUE}.
@@ -28,12 +37,17 @@
 #'   \describe{
 #'     \item{cluster}{Integer vector of length n, the majority-vote
 #'       consensus labels.}
-#'     \item{votes}{n x K integer matrix of vote counts.}
+#'     \item{votes}{n x K integer matrix of vote counts (rows sum to B).}
 #'     \item{reference}{Integer vector, the reference (non-bagged)
 #'       clustering used for label alignment.}
 #'     \item{B}{Number of bootstrap replicates.}
 #'     \item{base}{Base clusterer name.}
 #'   }
+#'
+#' @references
+#' Dudoit, S. and Fridlyand, J. (2003). Bagging to improve the accuracy of
+#' a clustering procedure. \emph{Bioinformatics}, 19(9), 1090--1099.
+#' \doi{10.1093/bioinformatics/btg038}
 #'
 #' @examples
 #' set.seed(1)
@@ -61,61 +75,62 @@ bagclust1 <- function(Z, K,
   base <- match.arg(base)
   distance <- match.arg(distance)
 
-  if (!is.null(seed)) set.seed(seed)
+  .local_seed(seed)
   n <- ncol(Z)
   base_fun <- switch(base,
                      pam      = shape_pam,
                      rankkmed = shape_rankkmed)
 
-  # Precompute the full-sample distance matrix so each bootstrap avoids
-  # recomputing on-the-fly by sub-indexing.
   D_full <- switch(distance,
                    rho = rho_matrix(Z),
                    dF  = dF_matrix(Z))
 
-  # Reference clustering on the full sample
-  ref_fit <- base_fun(D_full, K = K, ...)
-  ref_labels <- ref_fit$cluster
+  # Reference clustering on the full sample, then one seed per replicate so
+  # that serial and parallel runs agree.
+  ref_labels <- base_fun(D_full, K = K, ...)$cluster
+  seeds <- sample.int(.Machine$integer.max, B)
+  if (is.null(seed)) {
+    # Replicates reseed the stream; hand the caller back the state it would
+    # have after the draws above.
+    after <- .rng_get()
+    on.exit(.rng_set(after), add = TRUE)
+  }
 
-  # Bootstrap replicates
   one_replicate <- function(b) {
+    set.seed(seeds[b])
     idx <- sample.int(n, n, replace = TRUE)
-    D_b <- D_full[idx, idx]
-    fit <- base_fun(D_b, K = K, ...)
-    # Align labels of the bootstrap fit to the reference on shared indices.
-    aligned <- align_labels(fit$cluster, ref_labels[idx], K)
-    # Push aligned labels back to the *original* index space, voting only
-    # for observations that appeared in this bootstrap.
-    out <- integer(n)
-    for (i in seq_along(idx)) out[idx[i]] <- aligned[i]
-    out
+    fit <- base_fun(D_full[idx, idx], K = K, ...)
+    med <- idx[fit$medoids]
+    pred <- max.col(-D_full[, med, drop = FALSE], ties.method = "first")
+    align_labels(pred, ref_labels, K)
   }
 
   results <- if (parallel && requireNamespace("parallel", quietly = TRUE)) {
     if (is.null(n_cores)) {
-      n_cores <- max(1L, parallel::detectCores(logical = TRUE) - 1L)
+      n_avail <- parallel::detectCores(logical = TRUE)
+      n_cores <- if (is.na(n_avail)) 1L else max(1L, n_avail - 1L)
     }
     if (.Platform$OS.type == "windows") {
       cl <- parallel::makeCluster(n_cores)
       on.exit(parallel::stopCluster(cl), add = TRUE)
-      parallel::clusterExport(cl, c("D_full", "ref_labels", "base_fun",
-                                    "align_labels", "K", "n"),
-                              envir = environment())
       parallel::parLapply(cl, seq_len(B), one_replicate)
     } else {
-      parallel::mclapply(seq_len(B), one_replicate,
-                         mc.cores = n_cores)
+      parallel::mclapply(seq_len(B), one_replicate, mc.cores = n_cores)
     }
   } else {
     lapply(seq_len(B), one_replicate)
   }
 
-  # Tally votes (zero votes for observations absent in a given bootstrap)
+  failed <- vapply(results, inherits, logical(1), what = "try-error")
+  if (any(failed)) {
+    stop("bootstrap replicate ", which(failed)[1L], " failed: ",
+         conditionMessage(attr(results[[which(failed)[1L]]], "condition")),
+         call. = FALSE)
+  }
+
   votes <- matrix(0L, nrow = n, ncol = K)
   for (r in results) {
-    for (i in seq_len(n)) {
-      if (r[i] > 0L) votes[i, r[i]] <- votes[i, r[i]] + 1L
-    }
+    votes[cbind(seq_len(n), r)] <- votes[cbind(seq_len(n), r)] + 1L
   }
   cluster <- max.col(votes, ties.method = "first")
 
@@ -153,6 +168,11 @@ print.bagclust1 <- function(x, ...) {
 #' @param K Number of clusters.
 #'
 #' @return Integer vector of the relabelled \code{a}.
+#'
+#' @examples
+#' a <- c(2, 2, 3, 3, 1, 1)
+#' b <- c(1, 1, 2, 2, 3, 3)
+#' align_labels(a, b, K = 3)  # equals b
 #'
 #' @export
 align_labels <- function(a, b, K) {

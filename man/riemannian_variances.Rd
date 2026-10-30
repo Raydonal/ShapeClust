@@ -9,7 +9,7 @@ riemannian_variances(X, cluster)
 \arguments{
 \item{X}{Landmark array (k x 2 x n).}
 
-\item{cluster}{Integer vector of labels in 1..K, length n.}
+\item{cluster}{Vector of group labels, length n.}
 }
 \value{
 A list with VEG, VIG, and the ratio VEG/VIG.
@@ -17,8 +17,25 @@ A list with VEG, VIG, and the ratio VEG/VIG.
 \description{
 Estimates \code{VEG = sum_i rho(mu_i, mu)^2 / (K-1)} and
 \code{VIG = sum_i sum_j rho(X_ij, mu_i)^2 / (n-K)} using the
-Riemannian distance rho on Sigma_2^k. Group means are Frechet means
-computed via the shapes package if available, otherwise approximated
-by the observation with smallest sum of squared rho-distances to the
-others within its group.
+Riemannian distance rho on Kendall's shape space.
+}
+\details{
+The group and overall means are full Procrustes means: the dominant
+eigenvector of the complex sum of squares \eqn{\sum_j z_j z_j^*} of the
+pre-shapes (Kent, 1994). This is the Frechet mean under the full
+Procrustes distance.
+}
+\examples{
+mu_list <- list(
+  matrix(c(0,0, 10,0, 10,10, 0,10), 4, 2, byrow = TRUE),
+  matrix(c(0,0, 20,0, 20,10, 0,10), 4, 2, byrow = TRUE)
+)
+out <- sim_landmark_gaussian(mu_list, c(15, 15), sigma = 1, seed = 1)
+riemannian_variances(out$X, out$group)
+
+}
+\references{
+Kent, J. T. (1994). The complex Bingham distribution and shape
+analysis. \emph{Journal of the Royal Statistical Society B}, 56(2),
+285--299. \doi{10.1111/j.2517-6161.1994.tb01978.x}
 }

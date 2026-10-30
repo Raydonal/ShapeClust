@@ -6,6 +6,8 @@
 #include <RcppArmadillo.h>
 #include <cmath>
 #include <algorithm>
+#include <limits>
+#include <vector>
 
 using namespace Rcpp;
 
@@ -93,43 +95,36 @@ double pam_swap_cost_cpp(const arma::mat& D,
   return TCsh;
 }
 
-// Row-wise ranking
+// Row-wise ranks with ties averaged, matching base::rank(ties.method = "average")
 // [[Rcpp::export]]
-arma::umat rank_matrix_cpp(const arma::mat& D) {
+arma::mat rank_matrix_cpp(const arma::mat& D) {
   const arma::uword n = D.n_rows;
-  arma::umat R(n, n, arma::fill::zeros);
+  arma::mat R(n, n, arma::fill::zeros);
   for (arma::uword i = 0; i < n; ++i) {
-    arma::rowvec row = D.row(i);
-    arma::uvec ord = arma::sort_index(row);
-    for (arma::uword q = 0; q < n; ++q) R(i, ord(q)) = q + 1;
+    const arma::rowvec row = D.row(i);
+    const arma::uvec ord = arma::stable_sort_index(row);
+    arma::uword q = 0;
+    while (q < n) {
+      arma::uword r = q;
+      while (r + 1 < n && row(ord(r + 1)) == row(ord(q))) ++r;
+      const double avg = 0.5 * static_cast<double>(q + r) + 1.0;
+      for (arma::uword t = q; t <= r; ++t) R(i, ord(t)) = avg;
+      q = r + 1;
+    }
   }
   return R;
 }
 
-// Hostility-based medoid update
+// Row-wise ordering (1-based, ties kept in index order, as base::order)
 // [[Rcpp::export]]
-arma::uvec hostility_new_medoids_cpp(const arma::umat& R,
-                                     const arma::uvec& clusters,
-                                     arma::uword K) {
-  const arma::uword n = R.n_rows;
-  arma::uvec new_medoids(K, arma::fill::zeros);
-  for (arma::uword r = 0; r < K; ++r) {
-    std::vector<arma::uword> members;
-    members.reserve(n);
-    for (arma::uword j = 0; j < n; ++j) if (clusters(j) == r + 1) members.push_back(j);
-    const arma::uword m = members.size();
-    if (m == 0) { new_medoids(r) = 0; continue; }
-    double best_hv = -1.0;
-    arma::uword best_i = members[0];
-    for (arma::uword a = 0; a < m; ++a) {
-      const arma::uword i = members[a];
-      double hv = 0.0;
-      for (arma::uword b = 0; b < m; ++b) hv += static_cast<double>(R(i, members[b]));
-      if (hv > best_hv) { best_hv = hv; best_i = i; }
-    }
-    new_medoids(r) = best_i;
+Rcpp::IntegerMatrix order_matrix_cpp(const arma::mat& D) {
+  const arma::uword n = D.n_rows;
+  Rcpp::IntegerMatrix SI(n, n);
+  for (arma::uword i = 0; i < n; ++i) {
+    const arma::uvec ord = arma::stable_sort_index(D.row(i));
+    for (arma::uword q = 0; q < n; ++q) SI(i, q) = static_cast<int>(ord(q)) + 1;
   }
-  return new_medoids;
+  return SI;
 }
 
 // -----------------------------------------------------------------------------

@@ -56,9 +56,8 @@ helmert_submatrix <- function(k) {
 #' the (k-1) x n complex matrix Z whose columns are the corresponding
 #' unit-norm complex pre-shapes.
 #'
-#' @param X Numeric array of shape (k, 2, n).
-#' @param center If TRUE (default), remove translation via the Helmert
-#'   sub-matrix. If FALSE, assume the configurations are already centred.
+#' @param X Numeric array of shape (k, 2, n). Translation is removed with
+#'   the Helmert sub-matrix and scale by normalising to unit norm.
 #'
 #' @return A complex matrix of size (k-1) x n.
 #'
@@ -71,7 +70,7 @@ helmert_submatrix <- function(k) {
 #' round(colSums(Mod(Z)^2), 12)
 #'
 #' @export
-landmarks_to_preshape <- function(X, center = TRUE) {
+landmarks_to_preshape <- function(X) {
   stopifnot(length(dim(X)) == 3L, dim(X)[2L] == 2L)
   k <- dim(X)[1L]
   n <- dim(X)[3L]
@@ -81,15 +80,7 @@ landmarks_to_preshape <- function(X, center = TRUE) {
                        imaginary = as.numeric(X[, 2L, , drop = TRUE])),
                nrow = k, ncol = n)
 
-  if (center) {
-    H <- helmert_submatrix(k)
-    Z_H <- H %*% Z0
-  } else {
-    # If already centred, drop mean row equivalent: use first (k-1)
-    # coordinates after Helmert projection anyway for consistency.
-    H <- helmert_submatrix(k)
-    Z_H <- H %*% Z0
-  }
+  Z_H <- helmert_submatrix(k) %*% Z0
   # Normalise each column to unit complex norm
   norms <- sqrt(colSums(Mod(Z_H)^2))
   # Avoid division by zero
@@ -152,6 +143,11 @@ rho_matrix <- function(Z) {
 #' @param Z Complex pre-shape matrix of size (k-1) x n.
 #'
 #' @return A symmetric numeric matrix.
+#'
+#' @examples
+#' set.seed(1)
+#' Z <- landmarks_to_preshape(array(rnorm(4 * 2 * 5), dim = c(4, 2, 5)))
+#' all.equal(dF_matrix(Z), sin(rho_matrix(Z)))
 #'
 #' @export
 dF_matrix <- function(Z) {

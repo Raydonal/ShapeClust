@@ -4,13 +4,11 @@
 \alias{landmarks_to_preshape}
 \title{Convert 2D landmark configurations to complex pre-shape vectors}
 \usage{
-landmarks_to_preshape(X, center = TRUE)
+landmarks_to_preshape(X)
 }
 \arguments{
-\item{X}{Numeric array of shape (k, 2, n).}
-
-\item{center}{If TRUE (default), remove translation via the Helmert
-sub-matrix. If FALSE, assume the configurations are already centred.}
+\item{X}{Numeric array of shape (k, 2, n). Translation is removed with
+the Helmert sub-matrix and scale by normalising to unit norm.}
 }
 \value{
 A complex matrix of size (k-1) x n.

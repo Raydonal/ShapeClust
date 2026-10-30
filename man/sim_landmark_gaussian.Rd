@@ -25,7 +25,8 @@ Length = number of groups G.}
 
 \item{gamma}{Anisotropy parameter (default 4).}
 
-\item{seed}{Optional integer seed.}
+\item{seed}{Optional integer seed; the caller's random-number stream
+is left as it was.}
 }
 \value{
 A list with:

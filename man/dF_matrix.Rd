@@ -15,3 +15,9 @@ A symmetric numeric matrix.
 \description{
 \deqn{d_F(z_1, z_2) = \sqrt{1 - |z_1^* z_2|^2}}
 }
+\examples{
+set.seed(1)
+Z <- landmarks_to_preshape(array(rnorm(4 * 2 * 5), dim = c(4, 2, 5)))
+all.equal(dF_matrix(Z), sin(rho_matrix(Z)))
+
+}

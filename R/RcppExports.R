@@ -21,8 +21,8 @@ rank_matrix_cpp <- function(D) {
     .Call(`_ShapeClust_rank_matrix_cpp`, D)
 }
 
-hostility_new_medoids_cpp <- function(R, clusters, K) {
-    .Call(`_ShapeClust_hostility_new_medoids_cpp`, R, clusters, K)
+order_matrix_cpp <- function(D) {
+    .Call(`_ShapeClust_order_matrix_cpp`, D)
 }
 
 shape_pam_cpp <- function(D, medoids, max_iter) {

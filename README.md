@@ -1,8 +1,6 @@
 # ShapeClust
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/raydonal/ShapeClust/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/raydonal/ShapeClust/actions/workflows/R-CMD-check.yaml)
-[![pkgdown](https://github.com/raydonal/ShapeClust/actions/workflows/pkgdown.yaml/badge.svg)](https://raydonal.github.io/ShapeClust/)
 [![License: GPL-3](https://img.shields.io/badge/License-GPL_3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 <!-- badges: end -->
 
@@ -18,8 +16,8 @@ Ranked *K*-medoids with the intrinsic Riemannian geodesic distance of that
 manifold, and wraps either of them in a bagging ensemble. The computationally
 intensive routines are written in C++ via `Rcpp` and `RcppArmadillo`.
 
-This repository holds **both** the R package and the manuscript it accompanies:
-every table and figure in the paper can be regenerated from the code here.
+This repository holds the R package and the scripts that reproduce the study in
+the accompanying manuscript. The manuscript itself is not in this repository.
 
 ## Installation
 
@@ -68,10 +66,9 @@ ShapeClust/
 │                       #   simulation, model selection
 ├── src/                # C++ kernels (Rcpp + RcppArmadillo)
 ├── man/                # documentation
-├── tests/testthat/     # 42 unit tests
+├── tests/testthat/     # 20 test blocks, 72 assertions
 ├── vignettes/          # getting-started vignette
-├── inst/               # scripts that reproduce the whole study
-└── paper/              # the manuscript, its figures, and the build recipe
+└── inst/               # scripts that reproduce the whole study
 ```
 
 ### The package
@@ -86,20 +83,16 @@ ShapeClust/
 | `sim_complex_bingham()`, `sim_landmark_gaussian()` | the data-generating regimes |
 | `select_K()` | choosing the number of clusters |
 
-### The paper
-
-`paper/` holds the LaTeX sources, the 84 figures, the compiled PDFs and a
-`Makefile`. See [`paper/README.md`](paper/README.md) for how to rebuild the
-manuscript and how to re-run the Monte Carlo study from scratch.
-
 ## Reproducing the study
 
 The full design is 24 scenarios x 100 Monte Carlo replications x 100 bootstrap
 replicates, for two base clusterers. On a single core that is roughly 70
 minutes, so `inst/driver.R` runs it in resumable chunks that cache to disk and
-skip whatever is already done:
+skip whatever is already done. The scripts write to `paper/` under the working
+directory, so create that directory first:
 
 ```bash
+mkdir -p paper/figures
 Rscript inst/driver.R        # repeat until it reports 96 cached chunks
 Rscript inst/assemble.R      # 48 violin plots + the summary table
 Rscript inst/finish_figs.R   # 24 biplots
@@ -129,4 +122,4 @@ citation("ShapeClust")
 
 ## License
 
-GPL-3. See [LICENSE.md](LICENSE.md).
+GPL-3. See the [license text](https://www.gnu.org/licenses/gpl-3.0).

@@ -78,7 +78,7 @@ table(fit_pam$cluster, fit_rkm$cluster)
 ## Bagging ensemble
 
 `bagclust1()` wraps any base clusterer in a bootstrap ensemble that
-stabilises partitions via majority voting after Hungarian label
+stabilizes partitions via majority voting after Hungarian label
 alignment.
 
 ```{r bagclust}

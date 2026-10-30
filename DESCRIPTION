@@ -1,8 +1,8 @@
 Package: ShapeClust
 Type: Package
 Title: Bagged Medoid-Based Clustering on Kendall's 2D Shape Space
-Version: 0.2.0
-Date: 2026-07-12
+Version: 0.3.0
+Date: 2026-10-30
 Authors@R: c(
     person("Raydonal", "Ospina",
            email = "raydonal@de.ufpe.br",
@@ -16,21 +16,20 @@ Authors@R: c(
            role = "ctb",
            comment = c(affiliation = "Departamento de Estatistica, CASTLab, Universidade Federal de Pernambuco")))
 Maintainer: Raydonal Ospina <raydonal@de.ufpe.br>
-Description: Partitional clustering algorithms adapted to Kendall's
-    two-dimensional shape space, together with a bagging ensemble
-    wrapper. Provides Partitioning Around Medoids (PAM) and Ranked
-    K-medoids with the intrinsic Riemannian geodesic distance, and the
-    BagClust1 ensemble that stabilises partitions via bootstrap
-    aggregation. Includes reproducible utilities for simulating
-    Complex Bingham and Gaussian landmark data, external validation
-    indices (Rand and Fowlkes-Mallows), and paired Wilcoxon tests.
-    Performance-critical routines are implemented in C++ via 'Rcpp'
-    and 'RcppArmadillo'. Companion to the paper by Ospina, Nascimento and Amaral (2026).
-    Not yet on CRAN; developed and maintained at
-    <https://github.com/raydonal/ShapeClust>.
+Description: Partitional clustering on Kendall's two-dimensional shape
+    space with a bagging ensemble. Provides Partitioning Around Medoids
+    (PAM) and Ranked K-medoids (Zadegan, Mirzaie and Sadoughi (2013)
+    <doi:10.1016/j.knosys.2012.10.012>) with the intrinsic Riemannian
+    distance, and the 'BagClust1' bootstrap ensemble of Dudoit and
+    Fridlyand (2003) <doi:10.1093/bioinformatics/btg038>. Also includes
+    simulators for Complex Bingham (Kent (1994)
+    <doi:10.1111/j.2517-6161.1994.tb01978.x>) and Gaussian landmark data,
+    external validation indices (Rand and Fowlkes-Mallows), paired
+    Wilcoxon tests, and selection of the number of clusters by silhouette
+    width or the gap statistic. Performance-critical routines are written
+    in C++ via 'Rcpp' and 'RcppArmadillo'.
 License: GPL-3
 Encoding: UTF-8
-LazyData: true
 Depends: R (>= 3.6.0)
 Imports:
     Rcpp (>= 1.0.0),
@@ -40,14 +39,14 @@ LinkingTo: Rcpp, RcppArmadillo
 Suggests:
     shapes,
     clue,
+    kmed,
     parallel,
     testthat (>= 3.0.0),
     knitr,
     rmarkdown,
     ggplot2
 Config/testthat/edition: 3
-RoxygenNote: 7.3.1
 VignetteBuilder: knitr
-URL: https://github.com/raydonal/ShapeClust,
-    https://raydonal.github.io/ShapeClust/
-BugReports: https://github.com/raydonal/ShapeClust/issues
+URL: https://github.com/Raydonal/ShapeClust
+BugReports: https://github.com/Raydonal/ShapeClust/issues
+Config/roxygen2/version: 8.1.1

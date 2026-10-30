@@ -24,7 +24,9 @@ distance matrix of size n x n.}
 \item{m}{Neighbourhood size for cluster formation (default 5;
 Zadegan et al. (2013) recommend 5-15).}
 
-\item{max_iter}{Integer. Maximum number of iterations (default 30).}
+\item{max_iter}{Integer. Maximum number of iterations (default 30). The
+loop stops earlier at a fixed point (medoids unchanged and no
+relocation), from which further iterations cannot move.}
 
 \item{initial}{Optional vector of length K giving initial medoid
 indices (1-based).}
@@ -42,6 +44,11 @@ A list with components:
 \description{
 Shape-rankkmed: Ranked K-medoids on Kendall's 2D shape space
 }
+\details{
+With the same distance matrix, initial medoids and random-number
+stream, the partition equals that of \code{kmed::rankkmed} run with
+\code{iterate = max_iter}.
+}
 \examples{
 set.seed(1)
 k <- 4; n <- 30
@@ -50,4 +57,10 @@ Z <- landmarks_to_preshape(X)
 fit <- shape_rankkmed(Z, K = 3, m = 5)
 table(fit$cluster)
 
+}
+\references{
+Zadegan, S. M. R., Mirzaie, M. and Sadoughi, F. (2013). Ranked
+k-medoids: a fast and accurate rank-based partitioning algorithm for
+clustering large datasets. \emph{Knowledge-Based Systems}, 39, 133--143.
+\doi{10.1016/j.knosys.2012.10.012}
 }

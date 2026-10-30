@@ -62,7 +62,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // rank_matrix_cpp
-arma::umat rank_matrix_cpp(const arma::mat& D);
+arma::mat rank_matrix_cpp(const arma::mat& D);
 RcppExport SEXP _ShapeClust_rank_matrix_cpp(SEXP DSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -72,16 +72,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// hostility_new_medoids_cpp
-arma::uvec hostility_new_medoids_cpp(const arma::umat& R, const arma::uvec& clusters, arma::uword K);
-RcppExport SEXP _ShapeClust_hostility_new_medoids_cpp(SEXP RSEXP, SEXP clustersSEXP, SEXP KSEXP) {
+// order_matrix_cpp
+Rcpp::IntegerMatrix order_matrix_cpp(const arma::mat& D);
+RcppExport SEXP _ShapeClust_order_matrix_cpp(SEXP DSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::umat& >::type R(RSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type clusters(clustersSEXP);
-    Rcpp::traits::input_parameter< arma::uword >::type K(KSEXP);
-    rcpp_result_gen = Rcpp::wrap(hostility_new_medoids_cpp(R, clusters, K));
+    Rcpp::traits::input_parameter< const arma::mat& >::type D(DSEXP);
+    rcpp_result_gen = Rcpp::wrap(order_matrix_cpp(D));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -105,7 +103,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ShapeClust_pam_nearest_two_cpp", (DL_FUNC) &_ShapeClust_pam_nearest_two_cpp, 2},
     {"_ShapeClust_pam_swap_cost_cpp", (DL_FUNC) &_ShapeClust_pam_swap_cost_cpp, 6},
     {"_ShapeClust_rank_matrix_cpp", (DL_FUNC) &_ShapeClust_rank_matrix_cpp, 1},
-    {"_ShapeClust_hostility_new_medoids_cpp", (DL_FUNC) &_ShapeClust_hostility_new_medoids_cpp, 3},
+    {"_ShapeClust_order_matrix_cpp", (DL_FUNC) &_ShapeClust_order_matrix_cpp, 1},
     {"_ShapeClust_shape_pam_cpp", (DL_FUNC) &_ShapeClust_shape_pam_cpp, 3},
     {NULL, NULL, 0}
 };

@@ -27,7 +27,9 @@ bagclust1(
 
 \item{distance}{One of "rho" (default), "dF".}
 
-\item{seed}{Optional integer seed for reproducibility.}
+\item{seed}{Optional integer seed. The result is then reproducible and
+identical with and without \code{parallel}; the caller's
+random-number stream is left as it was.}
 
 \item{parallel}{Logical. If TRUE, use \code{parallel::mclapply}
 (Unix/macOS) or \code{parallel::parLapply} (Windows).}
@@ -43,7 +45,7 @@ A list with components:
   \describe{
     \item{cluster}{Integer vector of length n, the majority-vote
       consensus labels.}
-    \item{votes}{n x K integer matrix of vote counts.}
+    \item{votes}{n x K integer matrix of vote counts (rows sum to B).}
     \item{reference}{Integer vector, the reference (non-bagged)
       clustering used for label alignment.}
     \item{B}{Number of bootstrap replicates.}
@@ -51,7 +53,10 @@ A list with components:
   }
 }
 \description{
-BagClust1 for shape clustering
+Each bootstrap replicate fits the base clusterer to a resample and then
+assigns every one of the n original observations to its nearest
+bootstrap medoid, so all observations vote in every replicate
+(Dudoit and Fridlyand, 2003, BagClust1).
 }
 \examples{
 set.seed(1)
@@ -67,4 +72,9 @@ Z <- landmarks_to_preshape(X)
 fit <- bagclust1(Z, K = 3, base = "pam", B = 30, seed = 1)
 table(fit$cluster)
 
+}
+\references{
+Dudoit, S. and Fridlyand, J. (2003). Bagging to improve the accuracy of
+a clustering procedure. \emph{Bioinformatics}, 19(9), 1090--1099.
+\doi{10.1093/bioinformatics/btg038}
 }

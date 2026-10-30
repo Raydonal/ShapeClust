@@ -34,6 +34,25 @@ lines <- lines[-length(lines)]
 writeLines(lines, "paper/tab_main.tex")
 cat("main table rows:", length(lines), "\n")
 
+## ---- Table 1 rows for the overlapping scenarios only (as in the paper)
+ov <- c()
+for (rg in c("bing","iso","aniso")) {
+  cells <- unique(s$cell[startsWith(s$cell, paste0(rg,"_"))])
+  cells <- cells[order(sapply(cells, function(c) parse_cell(c)$k),
+                       sapply(cells, function(c) parse_cell(c)$n))]
+  for (j in seq_along(cells)) {
+    pc <- parse_cell(cells[j])
+    pa <- s[s$cell==cells[j] & s$scenario==2 & s$algo=="pam" & s$index=="IFM",]
+    rk <- s[s$cell==cells[j] & s$scenario==2 & s$algo=="rkm" & s$index=="IFM",]
+    lab <- if (j == 1) sprintf("\\multirow{4}{*}{%s}", regnames[[rg]]) else ""
+    ov <- c(ov, sprintf(
+      " %s & $k\\!=\\!%d,\\,n\\!=\\!%d$ & 2 & $%.3f\\to %.3f$ & %s & $%.3f\\to %.3f$ & %s \\\\",
+      lab, pc$k, pc$n, pa$med_std, pa$med_bag, fmtp(pa$p), rk$med_std, rk$med_bag, fmtp(rk$p)))
+  }
+  ov <- c(ov, "\\midrule")
+}
+writeLines(ov[-length(ov)], "paper/tab_main_ov.tex")
+
 ## ---- Supplement: full per-cell tables (RI and FMI, medians + sd + p)
 sup <- c()
 for (rg in c("bing","iso","aniso")) {

@@ -4,14 +4,7 @@
 \alias{shape_pam}
 \title{Shape-PAM: PAM on Kendall's 2D shape space}
 \usage{
-shape_pam(
-  Z,
-  K,
-  distance = c("rho", "dF"),
-  initial = NULL,
-  max_iter = 100L,
-  verbose = FALSE
-)
+shape_pam(Z, K, distance = c("rho", "dF"), initial = NULL, max_iter = 100L)
 }
 \arguments{
 \item{Z}{Complex pre-shape matrix of size (k-1) x n produced by
@@ -31,8 +24,6 @@ random from 1:n.}
 
 \item{max_iter}{Integer. Maximum number of swap iterations
 (default 100).}
-
-\item{verbose}{Logical. If TRUE, print swap steps.}
 }
 \value{
 A list with components:

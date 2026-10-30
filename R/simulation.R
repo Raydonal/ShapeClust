@@ -13,7 +13,8 @@
 #' @param lambda Numeric vector of concentration parameters
 #'   \eqn{(\lambda_1, \dots, \lambda_{k-1})}; note the last eigenvalue
 #'   is fixed at 0 by convention.
-#' @param seed Optional integer seed.
+#' @param seed Optional integer seed; the caller's random-number stream
+#'   is left as it was.
 #'
 #' @return A complex matrix of size (k-1) x n whose columns are
 #'   unit-norm Complex Bingham draws.
@@ -24,7 +25,7 @@
 #'
 #' @export
 sim_complex_bingham <- function(n, lambda, seed = NULL) {
-  if (!is.null(seed)) set.seed(seed)
+  .local_seed(seed)
   ## A pre-shape lives on the unit sphere of C^d with d = k - 1. The Complex
   ## Bingham has d eigenvalues, the largest of which is fixed at 0 by
   ## convention and marks the *pole* of the distribution. The caller supplies
@@ -109,7 +110,8 @@ sim_complex_bingham <- function(n, lambda, seed = NULL) {
 #' @param sigma Standard deviation of the perturbation.
 #' @param regime One of "isotropic" (default) or "anisotropic".
 #' @param gamma Anisotropy parameter (default 4).
-#' @param seed Optional integer seed.
+#' @param seed Optional integer seed; the caller's random-number stream
+#'   is left as it was.
 #'
 #' @return A list with:
 #'   \describe{
@@ -133,7 +135,7 @@ sim_landmark_gaussian <- function(mu_list, n_per_group,
                                   gamma = 4,
                                   seed = NULL) {
   regime <- match.arg(regime)
-  if (!is.null(seed)) set.seed(seed)
+  .local_seed(seed)
   G <- length(mu_list)
   stopifnot(length(n_per_group) == G, all(sapply(mu_list, ncol) == 2L))
   k <- nrow(mu_list[[1L]])

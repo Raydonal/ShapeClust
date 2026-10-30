@@ -14,7 +14,9 @@ select_K(
 )
 }
 \arguments{
-\item{Z}{Complex pre-shape matrix (k-1) x n, or an n x n distance matrix.}
+\item{Z}{Complex pre-shape matrix (k-1) x n, or an n x n distance matrix
+(silhouette only: the gap statistic needs the pre-shapes to draw its
+null reference).}
 
 \item{K_range}{Integer vector of candidate values of K.}
 
@@ -23,7 +25,7 @@ select_K(
 \item{base}{Base clusterer to use for each candidate K. One of
 "pam" (default) or "rankkmed".}
 
-\item{B_gap}{Number of null reference draws for the gap statistic.}
+\item{B_gap}{Number of null reference samples for the gap statistic.}
 
 \item{distance}{One of "rho" (default), "dF".}
 }
@@ -33,11 +35,21 @@ A list with:
     \item{K_hat}{Selected K.}
     \item{scores}{Named numeric vector of scores (silhouette width or
       gap statistic) at each candidate K.}
+    \item{se}{For \code{"gap"}, the simulation standard errors
+      \eqn{s_K}; \code{NULL} otherwise.}
     \item{method}{Selection method used.}
   }
 }
 \description{
 Select K by silhouette width or the gap statistic
+}
+\details{
+The gap statistic compares \eqn{\log W_K} with its mean under
+\code{B_gap} samples of the same size drawn uniformly on the shape
+space (uniform pre-shapes, i.e. a Complex Bingham with zero
+concentration). The selected K is the smallest one with
+\eqn{\mathrm{Gap}(K) \ge \mathrm{Gap}(K') - s_{K'}}, where \eqn{K'} is
+the next candidate (Tibshirani, Walther and Hastie, 2001).
 }
 \examples{
 set.seed(1)
@@ -52,4 +64,15 @@ Z <- landmarks_to_preshape(out$X)
 res <- select_K(Z, K_range = 2:5, method = "silhouette")
 res$K_hat
 
+}
+\references{
+Rousseeuw, P. J. (1987). Silhouettes: a graphical aid to the
+interpretation and validation of cluster analysis. \emph{Journal of
+Computational and Applied Mathematics}, 20, 53--65.
+\doi{10.1016/0377-0427(87)90125-7}
+
+Tibshirani, R., Walther, G. and Hastie, T. (2001). Estimating the number
+of clusters in a data set via the gap statistic. \emph{Journal of the
+Royal Statistical Society B}, 63(2), 411--423.
+\doi{10.1111/1467-9868.00293}
 }

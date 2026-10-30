@@ -17,3 +17,8 @@ A numeric in [0, 1].
 \description{
 Fowlkes and Mallows (1983).
 }
+\examples{
+fmi_index(c(1,1,2,2,3,3), c(1,1,2,2,3,3))
+fmi_index(c(1,1,2,2,3,3), c(1,2,2,1,3,3))
+
+}

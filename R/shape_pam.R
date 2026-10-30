@@ -23,7 +23,6 @@
 #'   random from 1:n.
 #' @param max_iter Integer. Maximum number of swap iterations
 #'   (default 100).
-#' @param verbose Logical. If TRUE, print swap steps.
 #'
 #' @return A list with components:
 #'   \describe{
@@ -46,8 +45,7 @@
 shape_pam <- function(Z, K,
                       distance = c("rho", "dF"),
                       initial = NULL,
-                      max_iter = 100L,
-                      verbose = FALSE) {
+                      max_iter = 100L) {
   distance <- match.arg(distance)
 
   # Build distance matrix if needed

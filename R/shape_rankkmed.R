@@ -1,10 +1,13 @@
 ## ---------------------------------------------------------------------------
 ##  Shape-rankkmed: Ranked K-medoids on Kendall's 2D shape space.
 ##
-##  Ranks pairwise distances row-wise, then updates each cluster's medoid
-##  by the largest hostility value (sum of within-cluster ranks). The
-##  rank matrix is built once and reused. Random relocations act as a
-##  simple stochastic perturbation to escape local optima.
+##  Follows Zadegan, Mirzaie and Sadoughi (2013) as implemented in
+##  kmed::rankkmed (Budiaji 2019). Distances are ranked row-wise once. At
+##  each iteration every medoid gathers its m nearest objects; within that
+##  group the object with the largest hostility value (row sum of the
+##  group's ranks) becomes the new medoid. Medoids that collide are merged
+##  and the missing ones are relocated at random to objects outside every
+##  group, which is the stochastic step of the algorithm.
 ## ---------------------------------------------------------------------------
 
 #' Shape-rankkmed: Ranked K-medoids on Kendall's 2D shape space
@@ -15,9 +18,22 @@
 #' @param distance Character. One of "rho" (default), "dF".
 #' @param m Neighbourhood size for cluster formation (default 5;
 #'   Zadegan et al. (2013) recommend 5-15).
-#' @param max_iter Integer. Maximum number of iterations (default 30).
+#' @param max_iter Integer. Maximum number of iterations (default 30). The
+#'   loop stops earlier at a fixed point (medoids unchanged and no
+#'   relocation), from which further iterations cannot move.
 #' @param initial Optional vector of length K giving initial medoid
 #'   indices (1-based).
+#'
+#' @details
+#' With the same distance matrix, initial medoids and random-number
+#' stream, the partition equals that of \code{kmed::rankkmed} run with
+#' \code{iterate = max_iter}.
+#'
+#' @references
+#' Zadegan, S. M. R., Mirzaie, M. and Sadoughi, F. (2013). Ranked
+#' k-medoids: a fast and accurate rank-based partitioning algorithm for
+#' clustering large datasets. \emph{Knowledge-Based Systems}, 39, 133--143.
+#' \doi{10.1016/j.knosys.2012.10.012}
 #'
 #' @return A list with components:
 #'   \describe{
@@ -55,73 +71,46 @@ shape_rankkmed <- function(Z, K,
   if (K < 2L || K > n - 1L) stop("K must satisfy 2 <= K <= n-1.")
 
   m <- as.integer(m)
-  if (m < 2L) stop("m must be at least 2.")
+  if (m < 2L || m > n) stop("m must satisfy 2 <= m <= n.")
 
-  # Rank matrix (row-wise) computed once.
-  R <- if (has_cpp_backend()) rank_matrix_cpp(D) else t(apply(D, 1L, rank))
-  storage.mode(R) <- "integer"
-
-  # Also cache the sort-index matrix SI: for row i, SI[i, ] is the
-  # ordering of columns from most to least similar (so SI[i, 1] == i).
-  SI <- t(apply(R, 1L, order))
+  # Row-wise ranks (ties averaged, as in base::rank) and the matching
+  # index matrix SI: SI[i, ] lists objects from nearest to farthest of i.
+  R  <- rank_matrix_cpp(D)
+  SI <- order_matrix_cpp(D)
 
   if (is.null(initial)) {
-    medoids <- sample.int(n, K)
+    medoids <- sort(sample.int(n, K))
   } else {
+    stopifnot(length(unique(initial)) == K, all(initial %in% seq_len(n)))
     medoids <- as.integer(initial)
   }
 
   n_iter <- 0L
   for (it in seq_len(max_iter)) {
-    # Form clusters: each medoid gets its m most-similar objects (union),
-    # then non-medoid observations are assigned to the nearest medoid.
-    # This mirrors the Zadegan et al. (2013) formulation.
-    cluster <- integer(n)
-    for (r in seq_len(K)) {
-      neighbours <- SI[medoids[r], seq_len(m)]
-      cluster[neighbours] <- r
-    }
-    # For any object not yet assigned, use nearest medoid
-    unassigned <- which(cluster == 0L)
-    if (length(unassigned)) {
-      for (j in unassigned) {
-        cluster[j] <- which.min(D[j, medoids])
-      }
-    }
-
-    # Update medoids by hostility value
-    if (has_cpp_backend()) {
-      new_medoids <- as.integer(
-        hostility_new_medoids_cpp(R, as.integer(cluster), K) + 1L
-      )
-    } else {
-      new_medoids <- integer(K)
-      for (r in seq_len(K)) {
-        members <- which(cluster == r)
-        if (!length(members)) { new_medoids[r] <- medoids[r]; next }
-        hv <- vapply(members, function(i) sum(R[i, members]), numeric(1))
-        new_medoids[r] <- members[which.max(hv)]
-      }
-    }
-
-    # Small stochastic relocation to escape local optima
-    if (identical(sort(new_medoids), sort(medoids))) {
-      n_iter <- it
-      medoids <- new_medoids
-      break
-    }
-    medoids <- new_medoids
     n_iter <- it
+    groups <- lapply(medoids, function(md) SI[md, seq_len(m)])
+    # Hostility: row sums of the group's ranks; the largest wins.
+    cand <- vapply(groups, function(g)
+      g[which.max(rowSums(R[g, g, drop = FALSE]))], integer(1))
+    in_groups <- unlist(groups)
+    hits <- vapply(cand, function(x) sum(in_groups == x), integer(1))
+    kept <- c(cand[hits == 1L], unique(cand[hits > 1L]))
+    relocated <- length(kept) != K
+    if (relocated) {
+      pool <- setdiff(seq_len(n), in_groups)
+      if (length(pool) < K - length(kept)) pool <- setdiff(seq_len(n), kept)
+      kept <- c(kept, pool[sample.int(length(pool), K - length(kept))])
+    }
+    new_medoids <- sort(as.integer(kept))
+    done <- !relocated && identical(new_medoids, as.integer(medoids))
+    medoids <- new_medoids
+    if (done) break
   }
 
-  # Final assignment
-  cluster <- integer(n)
-  for (j in seq_len(n)) {
-    cluster[j] <- which.min(D[j, medoids])
-  }
+  cluster <- max.col(-D[, medoids, drop = FALSE], ties.method = "first")
   obj <- sum(D[cbind(seq_len(n), medoids[cluster])])
 
-  list(cluster    = cluster,
+  list(cluster    = as.integer(cluster),
        medoids    = as.integer(medoids),
        objective  = obj,
        n_iter     = as.integer(n_iter),

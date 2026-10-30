@@ -100,7 +100,7 @@ sim_bingham_groups <- function(n_per, k, lambda) {
 
 ## ------------------------------------------------------------- one MC cell
 ## Returns a data frame with the four validation numbers per replication.
-run_cell <- function(regime, k, n, scenario) {
+run_cell <- function(regime, k, n, scenario, distance = "rho") {
   n_per <- n %/% 3L
   reps <- vector("list", R_MC)
 
@@ -117,12 +117,13 @@ run_cell <- function(regime, k, n, scenario) {
       Z <- landmarks_to_preshape(sim$X); truth <- sim$group
     }
 
-    D <- rho_matrix(Z)
+    D <- if (distance == "rho") rho_matrix(Z) else dF_matrix(Z)
 
     p_std <- shape_pam(D, K = K)$cluster
-    p_bag <- bagclust1(Z, K = K, base = "pam", B = B)$cluster
+    p_bag <- bagclust1(Z, K = K, base = "pam", B = B, distance = distance)$cluster
     r_std <- shape_rankkmed(D, K = K, m = 5)$cluster
-    r_bag <- bagclust1(Z, K = K, base = "rankkmed", B = B, m = 5)$cluster
+    r_bag <- bagclust1(Z, K = K, base = "rankkmed", B = B, m = 5,
+                       distance = distance)$cluster
 
     reps[[r]] <- data.frame(
       rep = r,
