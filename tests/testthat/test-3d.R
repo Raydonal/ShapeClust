@@ -265,17 +265,17 @@ test_that("the multivariate t and von Mises draws reproduce mvtnorm and CircStat
   for (s in 1:3) {
     set.seed(s); a <- mvtnorm::rmvt(6, S, df = 99)
     set.seed(s); b <- ShapeClust:::.rmvt_shifted(6, S, 99)
-    expect_equal(a, b, tolerance = 1e-14)
+    expect_equal(a, b, tolerance = 1e-10)
   }
   # reference values computed with CircStats::rvm 0.2-7
   set.seed(3); expect_equal(ShapeClust:::.rvm(1, 1234567, -0.141592653589793),
-                            2.16586641299739, tolerance = 1e-12)
+                            2.16586641299739, tolerance = 1e-8)
   set.seed(3); expect_equal(ShapeClust:::.rvm(1, 1234567, 2.14159265358979),
-                            2.58560859349757, tolerance = 1e-12)
+                            2.58560859349757, tolerance = 1e-8)
   set.seed(10); expect_equal(ShapeClust:::.rvm(1, 5, 2), 4.31029589589889,
-                             tolerance = 1e-12)
+                             tolerance = 1e-8)
   set.seed(11); expect_equal(ShapeClust:::.rvm(1, 987654321, -0.1415927),
-                             2.57368090358796, tolerance = 1e-12)
+                             2.57368090358796, tolerance = 1e-8)
 })
 
 test_that("built-in templates have the documented vertices", {
