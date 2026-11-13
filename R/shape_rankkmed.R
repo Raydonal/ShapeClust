@@ -12,8 +12,10 @@
 
 #' Shape-rankkmed: Ranked K-medoids on Kendall's 2D shape space
 #'
-#' @param Z Complex pre-shape matrix of size (k-1) x n, or a numeric
-#'   distance matrix of size n x n.
+#' @param Z Complex pre-shape matrix of size (k-1) x n, a numeric
+#'   distance matrix of size n x n, or a real landmark array of dimension
+#'   k x m x n with m = 2 or 3 (distances from
+#'   \code{\link{shape_distance}}).
 #' @param K Number of clusters (>= 2).
 #' @param distance Character. One of "rho" (default), "dF".
 #' @param m Neighbourhood size for cluster formation (default 5;
@@ -62,6 +64,8 @@ shape_rankkmed <- function(Z, K,
 
   if (is.matrix(Z) && !is.complex(Z)) {
     D <- Z
+  } else if (is.array(Z) && length(dim(Z)) == 3L && !is.complex(Z)) {
+    D <- shape_distance(Z, distance)  # real k x m x n landmark array (m = 2, 3)
   } else {
     D <- switch(distance,
                 rho = rho_matrix(Z),

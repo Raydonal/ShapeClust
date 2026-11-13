@@ -12,8 +12,9 @@
 #'
 #' @param Z Complex pre-shape matrix of size (k-1) x n produced by
 #'   \code{\link{landmarks_to_preshape}}, OR a numeric distance matrix
-#'   of size n x n. If a distance matrix is supplied, it is used
-#'   directly.
+#'   of size n x n, OR a real landmark array of dimension k x m x n with
+#'   m = 2 or 3 (distances from \code{\link{shape_distance}}). If a
+#'   distance matrix is supplied, it is used directly.
 #' @param K Number of clusters (>= 2).
 #' @param distance Character. One of "rho" (Riemannian; default),
 #'   "dF" (full Procrustes). Ignored if \code{Z} is already a distance
@@ -51,6 +52,8 @@ shape_pam <- function(Z, K,
   # Build distance matrix if needed
   if (is.matrix(Z) && !is.complex(Z)) {
     D <- Z  # user passed a distance matrix directly
+  } else if (is.array(Z) && length(dim(Z)) == 3L && !is.complex(Z)) {
+    D <- shape_distance(Z, distance)  # real k x m x n landmark array (m = 2, 3)
   } else {
     D <- switch(distance,
                 rho = rho_matrix(Z),

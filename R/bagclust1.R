@@ -15,14 +15,26 @@
 #'
 #' Each bootstrap replicate fits the base clusterer to a resample and then
 #' assigns every one of the n original observations to its nearest
-#' bootstrap medoid, so all observations vote in every replicate
+#' bootstrap medoid or center, so all observations vote in every replicate
 #' (Dudoit and Fridlyand, 2003, BagClust1).
 #'
-#' @param Z Complex pre-shape matrix of size (k-1) x n.
+#' @param Z Either a complex pre-shape matrix of size (k-1) x n (2D shapes,
+#'   from \code{\link{landmarks_to_preshape}}), or a real landmark array of
+#'   dimension k x m x n with m = 2 or 3. Base clusterer \code{"kmeans"}
+#'   needs the real array.
 #' @param K Number of clusters.
-#' @param base Base clusterer. One of "pam" (default) or "rankkmed".
+#' @param base Base clusterer. One of "pam" (default), "rankkmed",
+#'   "kmeans" (\code{\link{shape_kmeans}}), "clarans"
+#'   (\code{\link{shape_clarans}}) or "hill" (\code{\link{shape_hill}}).
+#'   The first, second, fourth and fifth fit on the distance matrix of the
+#'   resample and label observations by the nearest medoid; "kmeans" fits on
+#'   the landmarks of the resample and labels observations by the nearest
+#'   center (mean shape).
 #' @param B Number of bootstrap replicates (default 100).
-#' @param distance One of "rho" (default), "dF".
+#' @param distance One of "rho" (default), "dF" or "dP" ("dP", the partial
+#'   Procrustes distance, is new in the development version). It builds the
+#'   distance matrix the medoid methods work on and the distance to the
+#'   centers of "kmeans".
 #' @param seed Optional integer seed. The result is then reproducible and
 #'   identical with and without \code{parallel}; the caller's
 #'   random-number stream is left as it was.
@@ -30,10 +42,15 @@
 #'   (Unix/macOS) or \code{parallel::parLapply} (Windows).
 #' @param n_cores Number of cores to use if \code{parallel = TRUE}.
 #'   Default = \code{max(1, parallel::detectCores() - 1)}.
+#' @param reflection Logical, for real landmark arrays only: if TRUE,
+#'   reflections are removed too (see \code{\link{shape_distance}}).
+#'   Not available for \code{base = "kmeans"}.
 #' @param ... Additional arguments passed to the base clusterer
-#'   (e.g., \code{m = 7} for rankkmed).
+#'   (e.g., \code{m = 7} for rankkmed, \code{mean = "phi"} for kmeans,
+#'   \code{numlocal} and \code{maxneighbor} for clarans, \code{max_iter}
+#'   for hill).
 #'
-#' @return A list with components:
+#' @return A list of class \code{"bagclust1"} with components:
 #'   \describe{
 #'     \item{cluster}{Integer vector of length n, the majority-vote
 #'       consensus labels.}
@@ -63,31 +80,63 @@
 #' fit <- bagclust1(Z, K = 3, base = "pam", B = 30, seed = 1)
 #' table(fit$cluster)
 #'
+#' # 3D shapes: a real k x 3 x n array, here with the k-means base clusterer
+#' sim <- sim_shapes3d(n = 10, sigma = 0.5, seed = 1)
+#' fit3 <- bagclust1(sim$X, K = 2, base = "kmeans", B = 10, seed = 1)
+#' table(fit3$cluster, sim$group)
+#'
 #' @export
 bagclust1 <- function(Z, K,
-                      base = c("pam", "rankkmed"),
+                      base = c("pam", "rankkmed", "kmeans", "clarans", "hill"),
                       B = 100L,
-                      distance = c("rho", "dF"),
+                      distance = c("rho", "dF", "dP"),
                       seed = NULL,
                       parallel = FALSE,
                       n_cores = NULL,
+                      reflection = FALSE,
                       ...) {
   base <- match.arg(base)
   distance <- match.arg(distance)
 
+  is_array <- is.array(Z) && length(dim(Z)) == 3L && !is.complex(Z)
+  centroid <- base == "kmeans"
+  if (is_array) Z <- .check_array(Z, "Z", min_n = 2L)
+  if (centroid && !is_array) {
+    stop("base = \"kmeans\" needs a real landmark array k x m x n.", call. = FALSE)
+  }
+  if (isTRUE(reflection) && (!is_array || centroid)) {
+    stop("'reflection' is only available for real landmark arrays with a ",
+         "medoid-based base clusterer.", call. = FALSE)
+  }
+
   .local_seed(seed)
-  n <- ncol(Z)
+  n <- if (is_array) dim(Z)[3L] else ncol(Z)
   base_fun <- switch(base,
                      pam      = shape_pam,
-                     rankkmed = shape_rankkmed)
+                     rankkmed = shape_rankkmed,
+                     kmeans   = shape_kmeans,
+                     clarans  = shape_clarans,
+                     hill     = shape_hill)
 
-  D_full <- switch(distance,
-                   rho = rho_matrix(Z),
-                   dF  = dF_matrix(Z))
+  D_full <- NULL
+  if (!centroid) {
+    D_full <- if (is_array) {
+      shape_distance(Z, distance, reflection)
+    } else {
+      switch(distance,
+             rho = rho_matrix(Z),
+             dF  = dF_matrix(Z),
+             dP  = sqrt(2 * (1 - cos(rho_matrix(Z)))))
+    }
+  }
 
   # Reference clustering on the full sample, then one seed per replicate so
   # that serial and parallel runs agree.
-  ref_labels <- base_fun(D_full, K = K, ...)$cluster
+  ref_labels <- if (centroid) {
+    base_fun(Z, K = K, distance = distance, ...)$cluster
+  } else {
+    base_fun(D_full, K = K, ...)$cluster
+  }
   seeds <- sample.int(.Machine$integer.max, B)
   if (is.null(seed)) {
     # Replicates reseed the stream; hand the caller back the state it would
@@ -99,9 +148,15 @@ bagclust1 <- function(Z, K,
   one_replicate <- function(b) {
     set.seed(seeds[b])
     idx <- sample.int(n, n, replace = TRUE)
-    fit <- base_fun(D_full[idx, idx], K = K, ...)
-    med <- idx[fit$medoids]
-    pred <- max.col(-D_full[, med, drop = FALSE], ties.method = "first")
+    if (centroid) {
+      fit <- base_fun(Z[, , idx, drop = FALSE], K = K, distance = distance, ...)
+      pred <- max.col(-shape_distance(Z, distance, Y = fit$centers),
+                      ties.method = "first")
+    } else {
+      fit <- base_fun(D_full[idx, idx], K = K, ...)
+      med <- idx[fit$medoids]
+      pred <- max.col(-D_full[, med, drop = FALSE], ties.method = "first")
+    }
     align_labels(pred, ref_labels, K)
   }
 

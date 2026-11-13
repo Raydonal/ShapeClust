@@ -11,6 +11,74 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// shape_dist_cpp
+arma::mat shape_dist_cpp(const arma::cube& X, const arma::cube& Y, int type, bool reflection, bool same);
+RcppExport SEXP _ShapeClust_shape_dist_cpp(SEXP XSEXP, SEXP YSEXP, SEXP typeSEXP, SEXP reflectionSEXP, SEXP sameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::cube& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< int >::type type(typeSEXP);
+    Rcpp::traits::input_parameter< bool >::type reflection(reflectionSEXP);
+    Rcpp::traits::input_parameter< bool >::type same(sameSEXP);
+    rcpp_result_gen = Rcpp::wrap(shape_dist_cpp(X, Y, type, reflection, same));
+    return rcpp_result_gen;
+END_RCPP
+}
+// procrustes_mean_cpp
+Rcpp::List procrustes_mean_cpp(const arma::cube& X, double tol, int max_iter);
+RcppExport SEXP _ShapeClust_procrustes_mean_cpp(SEXP XSEXP, SEXP tolSEXP, SEXP max_iterSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::cube& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
+    rcpp_result_gen = Rcpp::wrap(procrustes_mean_cpp(X, tol, max_iter));
+    return rcpp_result_gen;
+END_RCPP
+}
+// phi_mean_cpp
+arma::mat phi_mean_cpp(const arma::cube& X, const arma::mat& mu);
+RcppExport SEXP _ShapeClust_phi_mean_cpp(SEXP XSEXP, SEXP muSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::cube& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type mu(muSEXP);
+    rcpp_result_gen = Rcpp::wrap(phi_mean_cpp(X, mu));
+    return rcpp_result_gen;
+END_RCPP
+}
+// shape_hill_cpp
+Rcpp::List shape_hill_cpp(const arma::mat& D, const arma::uvec& init, int max_iter, bool from_best);
+RcppExport SEXP _ShapeClust_shape_hill_cpp(SEXP DSEXP, SEXP initSEXP, SEXP max_iterSEXP, SEXP from_bestSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type D(DSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type init(initSEXP);
+    Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
+    Rcpp::traits::input_parameter< bool >::type from_best(from_bestSEXP);
+    rcpp_result_gen = Rcpp::wrap(shape_hill_cpp(D, init, max_iter, from_best));
+    return rcpp_result_gen;
+END_RCPP
+}
+// shape_clarans_cpp
+Rcpp::List shape_clarans_cpp(const arma::mat& D, int K, int numlocal, double maxneighbor);
+RcppExport SEXP _ShapeClust_shape_clarans_cpp(SEXP DSEXP, SEXP KSEXP, SEXP numlocalSEXP, SEXP maxneighborSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type D(DSEXP);
+    Rcpp::traits::input_parameter< int >::type K(KSEXP);
+    Rcpp::traits::input_parameter< int >::type numlocal(numlocalSEXP);
+    Rcpp::traits::input_parameter< double >::type maxneighbor(maxneighborSEXP);
+    rcpp_result_gen = Rcpp::wrap(shape_clarans_cpp(D, K, numlocal, maxneighbor));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rho_matrix_cpp
 arma::mat rho_matrix_cpp(const arma::cx_mat& Z);
 RcppExport SEXP _ShapeClust_rho_matrix_cpp(SEXP ZSEXP) {
@@ -98,6 +166,11 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_ShapeClust_shape_dist_cpp", (DL_FUNC) &_ShapeClust_shape_dist_cpp, 5},
+    {"_ShapeClust_procrustes_mean_cpp", (DL_FUNC) &_ShapeClust_procrustes_mean_cpp, 3},
+    {"_ShapeClust_phi_mean_cpp", (DL_FUNC) &_ShapeClust_phi_mean_cpp, 2},
+    {"_ShapeClust_shape_hill_cpp", (DL_FUNC) &_ShapeClust_shape_hill_cpp, 4},
+    {"_ShapeClust_shape_clarans_cpp", (DL_FUNC) &_ShapeClust_shape_clarans_cpp, 4},
     {"_ShapeClust_rho_matrix_cpp", (DL_FUNC) &_ShapeClust_rho_matrix_cpp, 1},
     {"_ShapeClust_dF_matrix_cpp", (DL_FUNC) &_ShapeClust_dF_matrix_cpp, 1},
     {"_ShapeClust_pam_nearest_two_cpp", (DL_FUNC) &_ShapeClust_pam_nearest_two_cpp, 2},

@@ -58,6 +58,30 @@ width and the gap statistic in the Riemannian metric. Note that bagging does not
 estimate *K*: given a fixed *K*, it stabilizes the partition that the base
 clusterer produces.
 
+## 3D shapes
+
+Configurations in two or three dimensions can also be given as a real
+`k x m x n` array (m = 2 or 3). `shape_pam()`, `shape_rankkmed()` and
+`bagclust1()` accept it directly, and `shape_kmeans()` clusters around
+Procrustes mean shapes.
+
+```r
+# Two groups of 3D configurations (a cube and a parallelepiped), n per group
+sim <- sim_shapes3d(n = 20, sigma = 0.5, seed = 1)
+
+hopkins_shape(sim$X, B = 49, seed = 1)    # clustering tendency
+D <- shape_distance(sim$X, "rho")         # Riemannian distance matrix
+
+fit_km  <- shape_kmeans(sim$X, K = 2)
+fit_pam <- shape_pam(sim$X, K = 2)
+fit_bag <- bagclust1(sim$X, K = 2, base = "kmeans", B = 100, seed = 1)
+
+fmi_index(sim$group, fit_bag$cluster)
+```
+
+The `shapes-3d` vignette walks through this and a real-data example (the
+macaque skulls of the **shapes** package).
+
 ## What is in here
 
 ```
@@ -66,8 +90,8 @@ ShapeClust/
 │                       #   simulation, model selection
 ├── src/                # C++ kernels (Rcpp + RcppArmadillo)
 ├── man/                # documentation
-├── tests/testthat/     # 20 test blocks, 72 assertions
-├── vignettes/          # getting-started vignette
+├── tests/testthat/
+├── vignettes/          # getting-started and 3D vignettes
 └── inst/               # scripts that reproduce the whole study
 ```
 
@@ -82,6 +106,9 @@ ShapeClust/
 | `rand_index()`, `fmi_index()`, `relative_gain()`, `riemannian_variances()`, `wilcoxon_paired_gain()` | validation |
 | `sim_complex_bingham()`, `sim_landmark_gaussian()` | the data-generating regimes |
 | `select_K()` | choosing the number of clusters |
+| `shape_distance()`, `shape_mean()`, `shape_kmeans()`, `shape_clarans()`, `shape_hill()` | 3D shapes: distances, mean shapes and further clusterers on real `k x m x n` arrays |
+| `shape_ensemble()` | consensus clustering of 3D shapes: bootstrap k-means in tangent PCA coordinates, co-association, spectral partition, real representative per cluster |
+| `sim_shapes3d()`, `hopkins_shape()` | 3D simulator and Hopkins test of clustering tendency |
 
 ## Reproducing the study
 

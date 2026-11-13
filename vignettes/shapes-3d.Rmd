@@ -1,0 +1,132 @@
+---
+title: "Clustering 3D shapes with ShapeClust"
+author: "Raydonal Ospina, Inácio R. A. Nascimento, Getúlio J. A. Amaral"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Clustering 3D shapes with ShapeClust}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4
+)
+```
+
+## Overview
+
+Landmark configurations in two or three dimensions are stored as a real
+`k × m × n` array: `k` landmarks, `m = 2` or `3` coordinates, `n`
+configurations. The functions below work on such arrays directly. The
+complex 2D interface described in the getting-started vignette is
+unchanged.
+
+## Simulating 3D shapes
+
+`sim_shapes3d()` draws two groups of configurations around a cube and a
+parallelepiped template with Gaussian landmark noise, after a random
+rotation of each configuration. Here `n` is the number of configurations
+per group.
+
+```{r simulate}
+library(ShapeClust)
+
+sim <- sim_shapes3d(n = 20, sigma = 0.5, seed = 1)
+dim(sim$X)
+table(sim$group)
+```
+
+## Distances
+
+`shape_distance()` returns the Riemannian (`"rho"`), full Procrustes
+(`"dF"`) or partial Procrustes (`"dP"`) distance matrix. Reflections are
+kept as distinct shapes unless `reflection = TRUE`.
+
+```{r distance}
+D <- shape_distance(sim$X, "rho")
+dim(D)
+round(range(D[upper.tri(D)]), 3)
+```
+
+## Clustering
+
+`shape_kmeans()` runs Lloyd's algorithm with a Procrustes mean shape.
+`shape_pam()` and `shape_rankkmed()` accept the array as well (they
+compute `shape_distance()` internally) or a distance matrix.
+
+```{r clustering}
+set.seed(1)
+fit_km  <- shape_kmeans(sim$X, K = 2)
+fit_pam <- shape_pam(sim$X, K = 2)
+
+table(group = sim$group, kmeans = fit_km$cluster)
+table(group = sim$group, pam = fit_pam$cluster)
+cat("FMI, k-means:", round(fmi_index(sim$group, fit_km$cluster), 3), "\n")
+cat("FMI, PAM    :", round(fmi_index(sim$group, fit_pam$cluster), 3), "\n")
+```
+
+## Bagging
+
+`bagclust1()` takes the same array. With `base = "kmeans"`, each
+bootstrap replicate fits the centers on the resample and labels all `n`
+configurations by the nearest center; the medoid-based bases (`"pam"`,
+`"rankkmed"`, `"clarans"`, `"hill"`) work on the distance matrix.
+
+```{r bagging}
+fit_bag <- bagclust1(sim$X, K = 2, base = "pam", B = 30, seed = 1)
+table(group = sim$group, bagged = fit_bag$cluster)
+cat("FMI, bagged PAM:", round(fmi_index(sim$group, fit_bag$cluster), 3), "\n")
+
+fit_bagk <- bagclust1(sim$X, K = 2, base = "kmeans", B = 10, seed = 1)
+cat("FMI, bagged k-means:",
+    round(fmi_index(sim$group, fit_bagk$cluster), 3), "\n")
+```
+
+## Clustering tendency
+
+`hopkins_shape()` tests whether a sample has cluster structure, with a
+Monte Carlo p-value under a tangent-space Gaussian null.
+
+```{r hopkins}
+hopkins_shape(sim$X, B = 49, seed = 1)
+```
+
+## A real data example: macaque skulls
+
+The `macaques` data of the **shapes** package are 7 landmarks in 3D on 18
+skulls, nine female and nine male.
+
+```{r macaques, eval = requireNamespace("shapes", quietly = TRUE)}
+data(macaques, package = "shapes")
+X <- macaques$x
+sex <- macaques$group
+dim(X)
+table(sex)
+
+set.seed(1)
+fit_pam <- shape_pam(X, K = 2)
+fit_bag <- bagclust1(X, K = 2, base = "pam", B = 50, seed = 1)
+
+table(sex = sex, pam = fit_pam$cluster)
+table(sex = sex, bagged = fit_bag$cluster)
+cat("FMI, PAM       :", round(fmi_index(as.integer(sex), fit_pam$cluster), 3), "\n")
+cat("FMI, bagged PAM:", round(fmi_index(as.integer(sex), fit_bag$cluster), 3), "\n")
+```
+
+## Consensus clustering with a representative shape
+
+`shape_ensemble()` clusters in the leading principal components of the
+tangent coordinates (enough components for 90% of the variance, between 2 and
+10). It runs k-means on bootstrap samples, builds the co-association matrix of
+the replicates and cuts it with a spectral partition. Each cluster also gets a
+representative, the observed shape closest to the cluster's Procrustes mean.
+
+```{r ensemble}
+fit_ens <- shape_ensemble(sim$X, K = 2, B = 30, seed = 1)
+fit_ens
+table(truth = sim$group, ensemble = fit_ens$cluster)
+```

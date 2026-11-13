@@ -1,3 +1,82 @@
+# ShapeClust 0.4.0
+
+* `shape_mixture()`: Gaussian mixture with a spherical variance per cluster
+  (mclust model VII) in tangent PCA coordinates (same scores and K - 1 floor
+  as `shape_ensemble()`), with its own EM (k-means++ multiple starts,
+  variance floor, empty-component restarts, flagged k-means fallback), no new
+  dependency. For clusters of unequal spread, where k-means and k-means
+  ensembles misassign the tail of the diffuse cluster. Returns posteriors,
+  means, variances, proportions, log-likelihood and real representatives.
+
+* `shape_ensemble()` gains `base = c("kmeans", "vii")`. The default keeps all
+  earlier results identical; `"vii"` fits the mixture on each bootstrap
+  resample and assigns all observations by maximum posterior.
+
+* `shape_ensemble()` and `shape_attention()` keep at least `K - 1` principal
+  components (before: at least 2). On 260 primate crania with K = 4 the 90%
+  variance rule kept 2 components and split the largest species. Results with
+  K <= 3 are unchanged.
+
+* `shape_attention()`: self-attention smoothing of shapes before clustering.
+  Each configuration is replaced by a softmax-weighted average of the others
+  in tangent (PCA) coordinates, with per-row temperatures set to a fixed
+  perplexity, as a transformer layer with no trained projections; layers can
+  be stacked (blurring mean shift) and a residual weight keeps part of each
+  point. The smoothed points are clustered by k-means or PAM. Reports the
+  share of attention inside each point's cluster as a diagnostic.
+  Experimental: in simulations it helped only with many landmarks and moderate
+  sample sizes.
+
+* `shape_ensemble()`: consensus clustering of landmark arrays. Bootstrap
+  k-means in tangent PCA coordinates (90% variance rule, 2 to 10 components),
+  co-association matrix, spectral partition, and the real observation closest
+  to each cluster's Procrustes mean as representative. Reproduces the
+  reference implementation used in the authors' 3D simulation study for the
+  same RNG state.
+
+* `hopkins_shape()`: Hopkins test of clustering tendency for 2D/3D landmark
+  arrays with a Monte Carlo p-value (tangent Gaussian or uniform null).
+* `shape_pam()` and `shape_rankkmed()` accept a real `k x m x n` landmark
+  array (distances from `shape_distance()`). 2D inputs give the same results
+  as before.
+* New vignette `shapes-3d`: simulation, clustering, bagging, `hopkins_shape()`
+  and the macaque skulls of 'shapes'.
+
+## 3D shapes
+
+The package now clusters configurations of landmarks in two or three
+dimensions given as real `k x m x n` arrays. The complex 2D interface
+(`landmarks_to_preshape()`, `rho_matrix()`, `dF_matrix()`, `shape_pam()`,
+`shape_rankkmed()`) is unchanged, and `bagclust1()` returns the same results
+as 0.3.0 for the same 2D calls (tested).
+
+* `shape_distance()`: Riemannian, full Procrustes and partial Procrustes
+  distance matrices (`"rho"`, `"dF"`, `"dP"`) in C++, from the singular values
+  of the cross-product of Helmert pre-shapes. Reflections are kept unless
+  `reflection = TRUE`. Agrees with `shapes::riemdist()` and
+  `shapes::procdist()` (tested), and with `rho_matrix()` in 2D.
+* `shape_mean()`: full Procrustes mean (`shapes::procGPA()`) and MDS/phi mean
+  (`shapes::MDSshape()`).
+* `shape_kmeans()`: Lloyd's algorithm with a Procrustes or phi mean, a port of
+  `LloydShapes()` and `LloydShapes.phi()` of the 3D bagging scripts.
+* `shape_clarans()`: FastCLARANS with R's random-number stream, defaults
+  `numlocal = 2`, `maxneighbor = 0.0125` as in the scripts. No dependency on
+  'fastkmedoids'. With these defaults no swap is tried when
+  `n - K <= 80` (see the help page).
+* `shape_hill()`: the hill-climbing search of the scripts, with the same
+  random draws (tested against a transcription). As in the script every
+  neighbor is a modification of the initial medoids; `from_best = TRUE` gives
+  hill climbing in the usual sense.
+* `bagclust1()` accepts a real landmark array as well as complex pre-shapes,
+  `base = "kmeans"`, `"clarans"` and `"hill"`, `distance = "dP"` and, for
+  real arrays, `reflection`. For `"kmeans"` every replicate labels all
+  observations by the nearest bootstrap center.
+* `sim_shapes3d()`: noisy cubes and parallelepipeds (8 or 34 landmarks,
+  isotropic or anisotropic), reproducing the generators of the scripts
+  draw for draw, with no dependency on 'mvtnorm' or 'CircStats'.
+* 'mvtnorm' added to Suggests (a test compares the simulator with
+  `mvtnorm::rmvt()`).
+
 # ShapeClust 0.3.0
 
 ## Portability and checks

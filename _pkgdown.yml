@@ -1,0 +1,67 @@
+url: https://raydonal.github.io/ShapeClust/
+
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left:  [intro, reference, articles, news]
+    right: [github]
+
+reference:
+  - title: "Geometry"
+    desc: "From landmark configurations to complex pre-shapes and shape-space distances."
+    contents:
+      - helmert_submatrix
+      - landmarks_to_preshape
+      - rho_matrix
+      - dF_matrix
+
+  - title: "Geometry for 3D shapes"
+    desc: "Distances and mean shapes for real k x m x n landmark arrays (m = 2 or 3)."
+    contents:
+      - shape_distance
+      - shape_mean
+
+  - title: "Clustering algorithms"
+    desc: "PAM and Ranked K-medoids adapted to Kendall's 2D shape space."
+    contents:
+      - shape_pam
+      - shape_rankkmed
+
+  - title: "Clustering algorithms for 3D shapes"
+    desc: "k-means, CLARANS and hill climbing for real landmark arrays or distance matrices."
+    contents:
+      - shape_kmeans
+      - shape_clarans
+      - shape_hill
+
+  - title: "Bagging ensemble"
+    desc: "BagClust1 wrapper and label alignment."
+    contents:
+      - bagclust1
+      - align_labels
+
+  - title: "Validation"
+    desc: "External validation indices and paired Wilcoxon tests."
+    contents:
+      - rand_index
+      - fmi_index
+      - relative_gain
+      - riemannian_variances
+      - wilcoxon_paired_gain
+
+  - title: "Simulation"
+    contents:
+      - sim_complex_bingham
+      - sim_landmark_gaussian
+      - sim_shapes3d
+
+  - title: "Model selection"
+    contents:
+      - select_K
+
+articles:
+  - title: "Introduction"
+    contents:
+      - getting-started

@@ -7,25 +7,38 @@
 bagclust1(
   Z,
   K,
-  base = c("pam", "rankkmed"),
+  base = c("pam", "rankkmed", "kmeans", "clarans", "hill"),
   B = 100L,
-  distance = c("rho", "dF"),
+  distance = c("rho", "dF", "dP"),
   seed = NULL,
   parallel = FALSE,
   n_cores = NULL,
+  reflection = FALSE,
   ...
 )
 }
 \arguments{
-\item{Z}{Complex pre-shape matrix of size (k-1) x n.}
+\item{Z}{Either a complex pre-shape matrix of size (k-1) x n (2D shapes,
+from \code{\link{landmarks_to_preshape}}), or a real landmark array of
+dimension k x m x n with m = 2 or 3. Base clusterer \code{"kmeans"}
+needs the real array.}
 
 \item{K}{Number of clusters.}
 
-\item{base}{Base clusterer. One of "pam" (default) or "rankkmed".}
+\item{base}{Base clusterer. One of "pam" (default), "rankkmed",
+"kmeans" (\code{\link{shape_kmeans}}), "clarans"
+(\code{\link{shape_clarans}}) or "hill" (\code{\link{shape_hill}}).
+The first, second, fourth and fifth fit on the distance matrix of the
+resample and label observations by the nearest medoid; "kmeans" fits on
+the landmarks of the resample and labels observations by the nearest
+center (mean shape).}
 
 \item{B}{Number of bootstrap replicates (default 100).}
 
-\item{distance}{One of "rho" (default), "dF".}
+\item{distance}{One of "rho" (default), "dF" or "dP" ("dP", the partial
+Procrustes distance, is new in the development version). It builds the
+distance matrix the medoid methods work on and the distance to the
+centers of "kmeans".}
 
 \item{seed}{Optional integer seed. The result is then reproducible and
 identical with and without \code{parallel}; the caller's
@@ -37,11 +50,17 @@ random-number stream is left as it was.}
 \item{n_cores}{Number of cores to use if \code{parallel = TRUE}.
 Default = \code{max(1, parallel::detectCores() - 1)}.}
 
+\item{reflection}{Logical, for real landmark arrays only: if TRUE,
+reflections are removed too (see \code{\link{shape_distance}}).
+Not available for \code{base = "kmeans"}.}
+
 \item{...}{Additional arguments passed to the base clusterer
-(e.g., \code{m = 7} for rankkmed).}
+(e.g., \code{m = 7} for rankkmed, \code{mean = "phi"} for kmeans,
+\code{numlocal} and \code{maxneighbor} for clarans, \code{max_iter}
+for hill).}
 }
 \value{
-A list with components:
+A list of class \code{"bagclust1"} with components:
   \describe{
     \item{cluster}{Integer vector of length n, the majority-vote
       consensus labels.}
@@ -55,7 +74,7 @@ A list with components:
 \description{
 Each bootstrap replicate fits the base clusterer to a resample and then
 assigns every one of the n original observations to its nearest
-bootstrap medoid, so all observations vote in every replicate
+bootstrap medoid or center, so all observations vote in every replicate
 (Dudoit and Fridlyand, 2003, BagClust1).
 }
 \examples{
@@ -71,6 +90,11 @@ for (i in seq_len(n)) {
 Z <- landmarks_to_preshape(X)
 fit <- bagclust1(Z, K = 3, base = "pam", B = 30, seed = 1)
 table(fit$cluster)
+
+# 3D shapes: a real k x 3 x n array, here with the k-means base clusterer
+sim <- sim_shapes3d(n = 10, sigma = 0.5, seed = 1)
+fit3 <- bagclust1(sim$X, K = 2, base = "kmeans", B = 10, seed = 1)
+table(fit3$cluster, sim$group)
 
 }
 \references{

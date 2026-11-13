@@ -1,6 +1,6 @@
 useDynLib(ShapeClust, .registration = TRUE)
 importFrom(Rcpp, sourceCpp)
-importFrom(stats, rnorm, runif, rexp, setNames, wilcox.test, median, sd, prcomp)
+importFrom(stats, rnorm, runif, rexp, rchisq, setNames, wilcox.test, median, sd, prcomp)
 importFrom(utils, str)
 
 # Geometry
@@ -8,10 +8,15 @@ export(helmert_submatrix)
 export(landmarks_to_preshape)
 export(rho_matrix)
 export(dF_matrix)
+export(shape_distance)
+export(shape_mean)
 
 # Clustering algorithms
 export(shape_pam)
 export(shape_rankkmed)
+export(shape_kmeans)
+export(shape_clarans)
+export(shape_hill)
 
 # Bagging ensemble
 export(bagclust1)
@@ -27,9 +32,22 @@ export(wilcoxon_paired_gain)
 # Simulators
 export(sim_complex_bingham)
 export(sim_landmark_gaussian)
+export(sim_shapes3d)
+
+# Consensus ensemble
+export(shape_ensemble)
+export(shape_mixture)
+
+# Attention smoothing
+export(shape_attention)
 
 # K selection
 export(select_K)
 
 # S3
 S3method(print, bagclust1)
+S3method(print, shape_ensemble)
+S3method(print, shape_mixture)
+S3method(print, shape_attention)
+export(hopkins_shape)
+S3method(print, hopkins_shape)

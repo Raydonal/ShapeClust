@@ -1,8 +1,8 @@
 Package: ShapeClust
 Type: Package
-Title: Bagged Medoid-Based Clustering on Kendall's 2D Shape Space
-Version: 0.3.0
-Date: 2026-10-30
+Title: Clustering on Kendall's Shape Spaces with Medoids, Means and Ensembles
+Version: 0.4.0
+Date: 2026-11-13
 Authors@R: c(
     person("Raydonal", "Ospina",
            email = "raydonal@de.ufpe.br",
@@ -16,18 +16,22 @@ Authors@R: c(
            role = "ctb",
            comment = c(affiliation = "Departamento de Estatistica, CASTLab, Universidade Federal de Pernambuco")))
 Maintainer: Raydonal Ospina <raydonal@de.ufpe.br>
-Description: Partitional clustering on Kendall's two-dimensional shape
-    space with a bagging ensemble. Provides Partitioning Around Medoids
-    (PAM) and Ranked K-medoids (Zadegan, Mirzaie and Sadoughi (2013)
-    <doi:10.1016/j.knosys.2012.10.012>) with the intrinsic Riemannian
-    distance, and the 'BagClust1' bootstrap ensemble of Dudoit and
-    Fridlyand (2003) <doi:10.1093/bioinformatics/btg038>. Also includes
-    simulators for Complex Bingham (Kent (1994)
-    <doi:10.1111/j.2517-6161.1994.tb01978.x>) and Gaussian landmark data,
-    external validation indices (Rand and Fowlkes-Mallows), paired
-    Wilcoxon tests, and selection of the number of clusters by silhouette
-    width or the gap statistic. Performance-critical routines are written
-    in C++ via 'Rcpp' and 'RcppArmadillo'.
+Description: Partitional clustering of landmark configurations in two or
+    three dimensions on Kendall's shape spaces. Provides Partitioning Around
+    Medoids (PAM), Ranked K-medoids (Zadegan, Mirzaie and Sadoughi (2013)
+    <doi:10.1016/j.knosys.2012.10.012>), Procrustes k-means, CLARANS and
+    Hill Climbing with the intrinsic Riemannian or full Procrustes distance,
+    and the 'BagClust1' bootstrap ensemble of Dudoit and Fridlyand (2003)
+    <doi:10.1093/bioinformatics/btg038>. Also provides a consensus ensemble
+    in tangent principal components (bootstrap k-means, co-association and
+    spectral partition), a Gaussian mixture with one variance per cluster
+    for groups of unequal spread, an experimental self-attention smoothing,
+    the Hopkins test of clustering tendency, simulators for Complex Bingham
+    (Kent (1994) <doi:10.1111/j.2517-6161.1994.tb01978.x>) and Gaussian
+    landmark data in 2D and 3D, external validation indices (Rand and
+    Fowlkes-Mallows), paired Wilcoxon tests, and selection of the number of
+    clusters by silhouette width or the gap statistic. Performance-critical
+    routines are written in C++ via 'Rcpp' and 'RcppArmadillo'.
 License: GPL-3
 Encoding: UTF-8
 Depends: R (>= 3.6.0)
@@ -38,8 +42,10 @@ Imports:
 LinkingTo: Rcpp, RcppArmadillo
 Suggests:
     shapes,
+    mvtnorm,
     clue,
     kmed,
+    mclust,
     parallel,
     testthat (>= 3.0.0),
     knitr,

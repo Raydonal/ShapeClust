@@ -14,8 +14,10 @@ shape_rankkmed(
 )
 }
 \arguments{
-\item{Z}{Complex pre-shape matrix of size (k-1) x n, or a numeric
-distance matrix of size n x n.}
+\item{Z}{Complex pre-shape matrix of size (k-1) x n, a numeric
+distance matrix of size n x n, or a real landmark array of dimension
+k x m x n with m = 2 or 3 (distances from
+\code{\link{shape_distance}}).}
 
 \item{K}{Number of clusters (>= 2).}
 

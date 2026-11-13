@@ -9,8 +9,9 @@ shape_pam(Z, K, distance = c("rho", "dF"), initial = NULL, max_iter = 100L)
 \arguments{
 \item{Z}{Complex pre-shape matrix of size (k-1) x n produced by
 \code{\link{landmarks_to_preshape}}, OR a numeric distance matrix
-of size n x n. If a distance matrix is supplied, it is used
-directly.}
+of size n x n, OR a real landmark array of dimension k x m x n with
+m = 2 or 3 (distances from \code{\link{shape_distance}}). If a
+distance matrix is supplied, it is used directly.}
 
 \item{K}{Number of clusters (>= 2).}
 
