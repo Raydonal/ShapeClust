@@ -53,6 +53,7 @@ Suggests:
     ggplot2
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: https://github.com/Raydonal/ShapeClust
+URL: https://github.com/Raydonal/ShapeClust,
+    https://raydonal.github.io/ShapeClust/
 BugReports: https://github.com/Raydonal/ShapeClust/issues
 Config/roxygen2/version: 8.1.1

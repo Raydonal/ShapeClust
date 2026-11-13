@@ -36,6 +36,13 @@ reference:
       - shape_clarans
       - shape_hill
 
+  - title: "Ensembles and mixtures"
+    desc: "Consensus ensemble in tangent PCA, Gaussian mixture with one variance per cluster, and experimental self-attention smoothing."
+    contents:
+      - shape_ensemble
+      - shape_mixture
+      - shape_attention
+
   - title: "Bagging ensemble"
     desc: "BagClust1 wrapper and label alignment."
     contents:
@@ -57,11 +64,13 @@ reference:
       - sim_landmark_gaussian
       - sim_shapes3d
 
-  - title: "Model selection"
+  - title: "Model selection and clustering tendency"
     contents:
       - select_K
+      - hopkins_shape
 
 articles:
   - title: "Introduction"
     contents:
       - getting-started
+      - shapes-3d
